@@ -1,0 +1,62 @@
+import csv, random
+from collections import Counter
+
+class Dataset():
+    def __init__(self):
+        self.data = None
+        self.headers = None
+
+    def load(self, file, has_labels=False):
+        with open(file, 'r') as f:
+            r = csv.reader(f)
+            data = list(r)
+            if has_labels:
+                self.labels = data.pop(0)
+            for row in data:
+                if not row:
+                    data.remove(row)
+            self.data = data
+    
+    def print_headers(self):
+        if self.headers:
+            for header in self.headers:
+                print(header)
+
+    def print_data(self, start=None, end=None):
+        for row in self.data[start:end]:
+            print(*row)
+
+    def split(self, training, test, validation):
+        if training+test+validation != 100:
+            print('procenty muszą sumować się do 100')
+        else:
+            randomized = list(self.data)
+            random.shuffle(randomized)
+            p1 = training * len(randomized) // 100
+            p2 = (training+test) * len(randomized) // 100
+            return {
+                'training': randomized[:p1],
+                'test': randomized[p1:p2],
+                'validation': randomized[p2:]
+            }
+    
+    def classes(self):
+        c = Counter([row[-1] for row in self.data])
+        for x in c.items():
+            print(x)
+
+    def print_data_with_class(self, c):
+        for row in self.data:
+            if row[-1] == c:
+                print(*row)
+    
+    def save(self, data, file):
+        with open(file, 'w', newline='') as f:
+            w = csv.writer(f)
+            w.writerows(data)
+
+data = Dataset()
+data.load('iris.data')
+data.classes()
+x = data.split(50,25,25)
+data.save(x['test'], 'test.csv')
